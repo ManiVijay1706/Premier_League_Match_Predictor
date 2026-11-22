@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#071a16">
+<title>Premier League | Matchday Predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #071a16; --panel: #10251f; --panel-soft: #142c24; --ink: #f4f8f1;
+    --muted: #9fb4a7; --line: #294339; --lime: #c5f36a; --lime-dark: #a8d94d;
+    --home: #9add54; --draw: #8c9b91; --away: #62d6bd; --danger: #ff9d91;
+    --shadow: 0 24px 70px #020c0980;
+    font-family: "DM Sans", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; color: var(--ink); background: radial-gradient(ellipse at 82% 0%, #17392b 0, transparent 38%), var(--bg); line-height: 1.5; }
+  .shell { max-width: 1120px; padding: 24px 28px 64px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 30px; border-bottom: 1px solid #ffffff12; }
+  .brand { display: flex; gap: 12px; align-items: center; font-weight: 800; letter-spacing: -.03em; }
+  .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #112218; background: var(--lime); font-size: 19px; }
+  .brand small { display: block; color: var(--muted); font-size: .67rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .season { padding: 7px 12px; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); font-size: .8rem; }
+  .hero { padding: 50px 0 30px; }
+  .hero-content { position: relative; }
+  .hero-copy { position: relative; z-index: 1; max-width: 700px; }
+  .goal-scene { position: absolute; top: 0; right: 2%; width: 235px; height: 154px; overflow: hidden; opacity: .86; pointer-events: none; }
+  .goal-frame { position: absolute; top: 22px; right: 12px; width: 112px; height: 82px; border: 5px solid #dbe9d9; border-bottom: 0; border-radius: 3px 3px 0 0; transform: perspective(190px) rotateY(-9deg); transform-origin: right center; }
+  .goal-net { position: absolute; inset: 0; overflow: hidden; background: repeating-linear-gradient(0deg, transparent 0 13px, #dbe9d948 13px 14px), repeating-linear-gradient(90deg, transparent 0 13px, #dbe9d948 13px 14px); transform-origin: right center; }
+  .goal-net::after { position: absolute; inset: 0; background: #c5f36a; opacity: 0; content: ""; animation: net-flash 3.8s ease-in-out infinite; }
+  .goal-post { position: absolute; z-index: 1; top: 17px; right: 6px; width: 6px; height: 90px; border-radius: 4px; background: #f4f8f1; box-shadow: 0 0 16px #d7f2d866; }
+  .goal-ground { position: absolute; right: 0; bottom: 22px; left: 0; height: 1px; background: linear-gradient(90deg, transparent, #bde0c866, transparent); }
+  .ball { position: absolute; z-index: 2; top: 94px; left: 16px; display: grid; width: 22px; height: 22px; place-items: center; border: 2px solid #10251f; border-radius: 50%; color: #10251f; background: #f4f8f1; box-shadow: 0 3px 9px #0007; font-size: 10px; animation: score-goal 3.8s cubic-bezier(.4,0,.7,.4) infinite; }
+  .ball::before { content: "⬟"; }
+  .crowd-call { position: absolute; right: 0; bottom: 0; left: 0; color: var(--lime); font-size: .78rem; font-weight: 800; letter-spacing: .16em; text-align: center; text-shadow: 0 0 16px #c5f36a55; }
+  .crowd-call span { position: absolute; right: 0; left: 0; opacity: 0; animation: call-out 7.6s steps(1, end) infinite; }
+  .crowd-call span:nth-child(2) { animation-delay: 3.8s; color: #f4f8f1; }
+  @keyframes call-out { 0%, 48% { opacity: 0; transform: translateY(4px) scale(.96); } 8%, 37% { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes score-goal {
+    0%, 9% { transform: translate(0, 0) rotate(0) scale(1); }
+    44% { transform: translate(137px, -56px) rotate(420deg) scale(.74); }
+    51% { transform: translate(151px, -55px) rotate(510deg) scale(.68); }
+    56% { transform: translate(138px, -49px) rotate(570deg) scale(.7); }
+    68%, 100% { transform: translate(0, 0) rotate(720deg) scale(1); }
+  }
+  @keyframes net-flash {
+    0%, 42%, 68%, 100% { opacity: 0; transform: scaleX(1); }
+    49%, 57% { opacity: .16; transform: scaleX(.9); }
+  }
+  .eyebrow { margin: 0 0 12px; color: var(--lime); font-size: .75rem; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
+  h1, h2, p { margin-top: 0; }
+  h1 { max-width: 700px; margin-bottom: 12px; font-family: Manrope, sans-serif; font-size: clamp(2.5rem, 6vw, 4.8rem); font-weight: 800; letter-spacing: -.065em; line-height: 1.02; }
+  .lede { max-width: 590px; margin: 0; color: var(--muted); font-size: 1.04rem; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(330px, .96fr); gap: 20px; align-items: start; }
+  .card { border: 1px solid #ffffff12; border-radius: 20px; background: linear-gradient(145deg, #142a23, #0d201b 75%); box-shadow: var(--shadow); }
+  .predictor { padding: 26px; }
+  .section-kicker { margin: 0 0 5px; color: var(--lime); font-size: .7rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+  h2 { margin-bottom: 6px; font-family: Manrope, sans-serif; font-size: 1.35rem; letter-spacing: -.035em; }
+  .hint { margin: 0 0 25px; color: var(--muted); font-size: .9rem; }
+  .fixture { display: grid; grid-template-columns: 1fr 42px 1fr; gap: 12px; align-items: end; }
+  label { display: block; margin-bottom: 8px; color: var(--muted); font-size: .8rem; font-weight: 700; }
+  select { width: 100%; min-width: 0; padding: 13px 38px 13px 13px; border: 1px solid var(--line); border-radius: 11px; color: var(--ink); background: #091c17; font: 600 1rem "DM Sans", sans-serif; }
+  select:focus-visible, button:focus-visible { outline: 3px solid var(--lime); outline-offset: 3px; }
+  .versus { display: grid; place-items: center; height: 48px; color: #698174; font-size: .75rem; font-weight: 800; }
+  button { display: flex; width: 100%; align-items: center; justify-content: center; gap: 10px; margin-top: 22px; padding: 14px 20px; border: 0; border-radius: 11px; color: #112218; background: var(--lime); font: 800 .96rem "DM Sans", sans-serif; cursor: pointer; transition: background .2s, transform .2s; }
+  button:hover:not(:disabled) { transform: translateY(-1px); background: #d4ff83; }
+  button:disabled { opacity: .65; cursor: wait; }
+  .arrow { font-size: 1.2rem; }
+  #msg { min-height: 1.3em; margin: 12px 0 0; color: var(--danger); font-size: .86rem; font-weight: 600; }
+  .model-note { display: flex; align-items: center; gap: 9px; margin-top: 22px; padding-top: 17px; border-top: 1px solid #ffffff12; color: var(--muted); font-size: .78rem; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 12px #c5f36a88; }
+  #result { grid-column: 1 / -1; padding: 27px; animation: appear .35s ease-out; }
+  #result[hidden] { display: none; }
+  @keyframes appear { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .result-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+  #title { margin: 0 0 4px; font-size: clamp(1.4rem, 3vw, 2rem); }
+  #verdict { margin: 0; color: var(--muted); }
+  .prediction-tag { flex: 0 0 auto; padding: 7px 11px; border: 1px solid #c5f36a40; border-radius: 99px; color: var(--lime); background: #c5f36a10; font-size: .75rem; font-weight: 700; }
+  .block-title { margin: 0 0 12px; font-size: .85rem; font-weight: 800; }
+  .bar { display: flex; height: 52px; overflow: hidden; border: 1px solid #ffffff12; border-radius: 12px; background: var(--panel-soft); }
+  .seg { display: flex; width: 0; align-items: center; justify-content: center; overflow: hidden; color: #102018; font-size: .86rem; font-weight: 800; white-space: nowrap; transition: width .75s cubic-bezier(.2,.8,.2,1); }
+  .seg.home { background: var(--home); } .seg.draw { color: #101a15; background: #b0bbb3; } .seg.away { background: var(--away); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 13px 0 30px; color: var(--muted); font-size: .83rem; }
+  .legend span::before { display: inline-block; width: 9px; height: 9px; margin-right: 8px; border-radius: 3px; background: var(--c); content: ""; }
+  .result-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(260px, .85fr); gap: 30px; }
+  .sub { margin: 0 0 17px; color: var(--muted); font-size: .82rem; }
+  .chart { display: grid; gap: 17px; }
+  .chart-row { display: grid; grid-template-columns: 118px 1fr; gap: 12px; align-items: center; }
+  .metric { color: var(--muted); font-size: .78rem; font-weight: 600; }
+  .pair-bars { display: grid; gap: 6px; }
+  .track { position: relative; height: 13px; overflow: hidden; border-radius: 99px; background: #ffffff0d; }
+  .fill { width: 0; height: 100%; border-radius: inherit; transition: width .7s cubic-bezier(.2,.8,.2,1); }
+  .fill.home { background: var(--home); } .fill.away { background: var(--away); }
+  .chart-values { display: flex; justify-content: space-between; margin-top: 4px; color: var(--muted); font-size: .7rem; font-variant-numeric: tabular-nums; }
+  .chart-values span:first-child { color: var(--home); } .chart-values span:last-child { color: var(--away); }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .8rem; font-variant-numeric: tabular-nums; }
+  th, td { padding: 11px 8px; border-bottom: 1px solid #ffffff10; text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { padding-left: 0; text-align: left; }
+  thead th { color: var(--muted); font-size: .72rem; font-weight: 700; }
+  tbody th { color: var(--muted); font-weight: 500; }
+  td:nth-child(2) { color: var(--home); font-weight: 700; } td:nth-child(3) { color: var(--away); font-weight: 700; }
+  .foot { margin: 20px 0 0; padding-top: 17px; border-top: 1px solid #ffffff12; color: var(--muted); font-size: .78rem; }
+  .foot strong { color: var(--ink); }
+  @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } .result-grid { grid-template-columns: 1fr; gap: 27px; } #result { grid-column: auto; } .goal-scene { right: 0; opacity: .42; } }
+  @media (max-width: 520px) { .shell { padding: 17px 16px 42px; } .hero { padding: 36px 0 25px; } .goal-scene { top: 6px; right: -13px; transform: scale(.7); transform-origin: top right; opacity: .25; } .predictor, #result { padding: 20px; border-radius: 16px; } .fixture { grid-template-columns: 1fr; gap: 10px; } .versus { display: none; } .result-head { flex-direction: column; } .chart-row { grid-template-columns: 102px 1fr; gap: 8px; } .season { font-size: .7rem; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+</style>
+</head>
+<body>
+<main class="shell">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">◆</span><span>THE MATCHROOM<small>Premier League analytics</small></span></div>
+    <span class="season">PREMIER LEAGUE&nbsp; · &nbsp;MATCH PREDICTOR</span>
+  </header>
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-copy">
+        <p class="eyebrow">The numbers behind the fixture</p>
+        <h1>Make matchday<br>more interesting.</h1>
+        <p class="lede">Compare recent form and see how the model weighs the chances of a home win, draw, or away win.</p>
+      </div>
+      <div class="goal-scene" aria-hidden="true">
+        <div class="goal-ground"></div>
+        <div class="goal-frame"><div class="goal-net"></div></div>
+        <div class="goal-post"></div>
+        <span class="ball"></span>
+        <div class="crowd-call"><span>GOALLLLL!</span><span>SAVE!!</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="layout">
+    <section class="card predictor" aria-labelledby="pick-title">
+      <p class="section-kicker">01 / Choose fixture</p>
+      <h2 id="pick-title">Who’s playing?</h2>
+      <p class="hint">Select two sides to see the match outlook.</p>
+      <div class="fixture">
+        <div><label for="home">HOME TEAM</label><select id="home" aria-label="Home team"></select></div>
+        <span class="versus" aria-hidden="true">VS</span>
+        <div><label for="away">AWAY TEAM</label><select id="away" aria-label="Away team"></select></div>
+      </div>
+      <button id="go" type="button">Predict this match <span class="arrow" aria-hidden="true">→</span></button>
+      <p id="msg" role="alert" aria-live="polite"></p>
+      <div class="model-note"><span class="live-dot" aria-hidden="true"></span> Match model · recent form and season table <span id="data-as-of"></span></div>
+    </section>
+
+    <section id="result" class="card" hidden aria-live="polite">
+      <div class="result-head">
+        <div><p class="section-kicker">02 / Match outlook</p><h2 id="title"></h2><p id="verdict"></p></div>
+        <span class="prediction-tag">MODEL ESTIMATE</span>
+      </div>
+      <p class="block-title">Outcome probabilities</p>
+      <div class="bar" role="img" aria-label="Outcome probabilities">
+        <div class="seg home" id="s-home"></div><div class="seg draw" id="s-draw"></div><div class="seg away" id="s-away"></div>
+      </div>
+      <div class="legend"><span id="l-home" style="--c:var(--home)"></span><span id="l-draw" style="--c:var(--draw)"></span><span id="l-away" style="--c:var(--away)"></span></div>
+
+      <div class="result-grid">
+        <section aria-labelledby="chart-title">
+          <h2 id="chart-title">Recent form</h2>
+          <p class="sub">Per-game averages across each team’s last five matches available in the model data. Promoted clubs may show older Premier League form.</p>
+          <div class="chart" role="img" aria-label="Recent form comparison">
+            <div class="chart-row"><span class="metric">Goals scored</span><div class="pair-bars"><div class="track"><div class="fill home" id="gf-bar-h"></div></div><div class="track"><div class="fill away" id="gf-bar-a"></div></div><div class="chart-values"><span id="gf-val-h"></span><span id="gf-val-a"></span></div></div></div>
+            <div class="chart-row"><span class="metric">Goals conceded</span><div class="pair-bars"><div class="track"><div class="fill home" id="ga-bar-h"></div></div><div class="track"><div class="fill away" id="ga-bar-a"></div></div><div class="chart-values"><span id="ga-val-h"></span><span id="ga-val-a"></span></div></div></div>
+            <div class="chart-row"><span class="metric">Points earned</span><div class="pair-bars"><div class="track"><div class="fill home" id="pt-bar-h"></div></div><div class="track"><div class="fill away" id="pt-bar-a"></div></div><div class="chart-values"><span id="pt-val-h"></span><span id="pt-val-a"></span></div></div></div>
+          </div>
+        </section>
+        <section aria-labelledby="table-title">
+          <h2 id="table-title">Form breakdown</h2>
+          <p class="sub">The figures used in the comparison.</p>
+          <div class="table-wrap"><table>
+            <thead><tr><th></th><th id="t-home"></th><th id="t-away"></th></tr></thead>
+            <tbody><tr><th>Goals scored / game</th><td id="gf-h"></td><td id="gf-a"></td></tr><tr><th>Goals conceded / game</th><td id="ga-h"></td><td id="ga-a"></td></tr><tr><th>Points / game</th><td id="pt-h"></td><td id="pt-a"></td></tr></tbody>
+          </table></div>
+        </section>
+      </div>
+      <p class="foot">Validation accuracy: <strong id="acc">—</strong>. Football is unpredictable; treat these probabilities as estimates, not tips.</p>
+    </section>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const pct = p => Math.round(p * 100);
+const number = n => Number(n).toFixed(2);
+
+async function init() {
+  try {
+    const response = await fetch("/api/teams");
+    if (!response.ok) throw new Error("Team request failed");
+    const d = await response.json();
+    for (const sel of [$("home"), $("away")]) d.teams.forEach(t => sel.add(new Option(t, t)));
+    $("away").selectedIndex = Math.min(1, d.teams.length - 1);
+    $("acc").textContent = pct(d.accuracy) + "%";
+    const dates = [];
+    if (d.data_as_of) dates.push(`form data ${d.data_as_of}`);
+    if (d.table_as_of) dates.push(`league table ${d.table_as_of}`);
+    if (dates.length) $("data-as-of").textContent = `· ${dates.join(" · ")}`;
+  } catch {
+    $("msg").textContent = "Could not load teams. Check that the model is available and restart the app.";
+  }
+}
+
+async function predict() {
+  $("msg").textContent = "";
+  $("go").disabled = true;
+  try {
+    const res = await fetch("/api/predict", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ home: $("home").value, away: $("away").value }) });
+    const d = await res.json();
+    if (!res.ok) { $("msg").textContent = d.error || "Could not make a prediction."; return; }
+    render(d);
+  } catch {
+    $("msg").textContent = "The prediction failed. Check that the server is running.";
+  } finally { $("go").disabled = false; }
+}
+
+function render(d) {
+  const { home, away, probs, form } = d;
+  $("result").hidden = false;
+  $("title").textContent = `${home} v ${away}`;
+  const labels = { home: `${home} win`, draw: "Draw", away: `${away} win` };
+  const best = Object.keys(probs).reduce((a, b) => probs[a] >= probs[b] ? a : b);
+  $("verdict").textContent = `Most likely: ${labels[best]} (${pct(probs[best])}%).`;
+  for (const k of ["home", "draw", "away"]) {
+    const seg = $("s-" + k);
+    seg.textContent = ""; seg.style.width = "0";
+    requestAnimationFrame(() => requestAnimationFrame(() => { seg.style.width = pct(probs[k]) + "%"; seg.textContent = pct(probs[k]) >= 9 ? pct(probs[k]) + "%" : ""; }));
+    $("l-" + k).textContent = `${labels[k]} ${pct(probs[k])}%`;
+  }
+  $("t-home").textContent = home; $("t-away").textContent = away;
+  const metrics = [{ key: "GF", id: "gf", max: 4 }, { key: "GA", id: "ga", max: 4 }, { key: "Pts", id: "pt", max: 3 }];
+  for (const { key, id, max } of metrics) {
+    const hv = Number(form[home][key]), av = Number(form[away][key]);
+    $(`${id}-h`).textContent = number(hv); $(`${id}-a`).textContent = number(av);
+    $(`${id}-val-h`).textContent = `${home} · ${number(hv)}`; $(`${id}-val-a`).textContent = `${away} · ${number(av)}`;
+    $(`${id}-bar-h`).style.width = `${Math.min(100, hv / max * 100)}%`;
+    $(`${id}-bar-a`).style.width = `${Math.min(100, av / max * 100)}%`;
+  }
+}
+
+$("go").addEventListener("click", predict);
+init();
+</script>
+</body>
+</html>
